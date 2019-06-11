@@ -1,4 +1,4 @@
-package test.pivotal.pal.tracker;
+package io.pivotal.pal.tracker;
 
 import io.pivotal.pal.tracker.TimeEntry;
 import io.pivotal.pal.tracker.TimeEntryController;
