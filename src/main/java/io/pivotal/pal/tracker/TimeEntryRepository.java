@@ -2,7 +2,7 @@ package io.pivotal.pal.tracker;
 
 import java.util.List;
 
-interface TimeEntryRepository {
+public interface TimeEntryRepository {
 
     TimeEntry create(TimeEntry any);
 
