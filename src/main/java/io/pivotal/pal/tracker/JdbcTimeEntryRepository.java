@@ -1,7 +1,5 @@
 package io.pivotal.pal.tracker;
 
-import org.springframework.dao.DataAccessException;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -12,22 +10,18 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 
 
 public class JdbcTimeEntryRepository implements TimeEntryRepository {
 
     private JdbcTemplate template;
-    private GeneratedKeyHolder keyHolder;
 
     public JdbcTimeEntryRepository(DataSource dataSource) {
 
         template = new JdbcTemplate(dataSource);
-        keyHolder = new GeneratedKeyHolder();
     }
 
     @Override
@@ -91,7 +85,7 @@ public class JdbcTimeEntryRepository implements TimeEntryRepository {
 
     @Override
     public TimeEntry update(long id, TimeEntry entry) {
-        int update = template.update("update time_entries SET project_id = ?, user_id = ?, date = ?, hours = ?  WHERE id =?",
+        template.update("update time_entries SET project_id = ?, user_id = ?, date = ?, hours = ?  WHERE id =?",
                 entry.getProjectId(), entry.getUserId(), entry.getDate(), entry.getHours(), id);
 
         entry.setTimeEntryId(id);

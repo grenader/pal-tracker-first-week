@@ -8,7 +8,7 @@ public class InMemoryTimeEntryRepository implements TimeEntryRepository {
     private long lastEntry = 0;
 
     public TimeEntry create(TimeEntry entry) {
-        if (entry.getId() == -1)
+        if (entry.getId() <= 0)
             entry.setTimeEntryId(++lastEntry);
         allEntries.put(entry.getId(), entry);
         return entry;
