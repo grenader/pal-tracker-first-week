@@ -1,5 +1,6 @@
 package io.pivotal.pal.tracker;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -14,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-
+@Profile("local")
 public class JdbcTimeEntryRepository implements TimeEntryRepository {
 
     private JdbcTemplate template;
