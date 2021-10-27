@@ -1,0 +1,1 @@
+fly -t tutorial set-pipeline -c ../ci/pipeline.yml -l ../ci/secret.yml -p pal1

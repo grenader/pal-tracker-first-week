@@ -1,0 +1,134 @@
+groups:
+- name: JavaApp
+  jobs:
+  - java-unit-tests
+  - java-build-and-deploy
+  - tas-deploy
+- name: DockerHub
+  jobs:
+  - update-docker-image
+
+resources:
+  - name: angular-bootcamp-repo
+    type: git
+    source:
+      uri: https://github.com/grenader/pal-tracker-first-week.git
+      branch: global-properties
+
+  - name: pws-labs-playground
+    type: cf
+    source:
+      api: ((tas_api))
+#      username: ((pws_username))
+#      password: ((pws_password))
+      organization: ((tas_org))
+      space: ((tas_space))
+      skip_cert_check: true
+
+  - name: docker-hub
+    type: docker-image
+    source:
+      repository: djoo/angular-spring
+      username: ((dh_username))
+      password: ((dh_password))
+
+
+jobs:
+- name: update-docker-image
+  plan:
+  - get: angular-bootcamp-repo
+  - put: docker-hub
+    params: {build: ci}
+    get_params: {rootfs: true}
+
+- name: java-unit-tests
+  plan:
+  - get: angular-bootcamp-repo
+    trigger: false
+  - task: Run API Unit Tests
+    timeout: 59m
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: openjdk
+          tag: 11.0.13-oracle
+      inputs:
+        - name: angular-bootcamp-repo
+      run:
+        path: bash
+        args:
+          - "-c"
+          - "SPRING_PROFILES_ACTIVE=test ./gradlew test"
+
+- name: java-build-and-deploy
+  plan:
+    - get: angular-bootcamp-repo
+      trigger: true
+    - task: Build API Jar file
+      timeout: 59m
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: openjdk
+            tag: 11.0.13-oracle
+        inputs:
+          - name: angular-bootcamp-repo
+        outputs:
+          - name: output
+        run:
+          path: bash
+          args:
+            - "-c"
+            - "cd ./gradlew build -x test && cp ./build/libs/angular-bootcamp-0.0.1-SNAPSHOT.jar ../output && cp manifest-tas.yml ../output"
+    - task: Build API Jar file
+      timeout: 59m
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: governmentpaas/cf-cli
+        inputs:
+          - name: output
+        run:
+          path: bash
+          args:
+            - "-c"
+            - "cd ./output && cf login --sso-passcode ((tas_passcode)) -a https://api.run.pcfone.io -o pivot-ikanshyn -s dev && cf push -f manifest-ci-api.yml"
+
+- name: tas-deploy
+  serial: true
+  plan:
+  - get: angular-bootcamp-repo
+    trigger: false
+    passed: [java-unit-tests]
+  - task: Build
+    timeout: 59m
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: djoo/angular-spring
+      inputs:
+        - name: angular-bootcamp-repo
+      outputs:
+        - name: output
+      run:
+        path: bash
+        args:
+          - "-c"
+          - "sh ./angular-bootcamp-repo/scripts/build-ci.sh"
+  - aggregate:
+    - put: pws-labs-playground
+      params:
+        manifest: ./angular-bootcamp-repo/manifest-ci-api.yml
+        current_app_name: angular-bootcamp-api
+    - put: pws-labs-playground
+      params:
+        manifest: ./angular-bootcamp-repo/manifest-ci-ui.yml
+        current_app_name: angular-bootcamp-ui
