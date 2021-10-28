@@ -9,7 +9,7 @@ groups:
   - update-docker-image
 
 resources:
-  - name: angular-bootcamp-repo
+  - name: repo
     type: git
     source:
       uri: https://github.com/grenader/pal-tracker-first-week.git
@@ -36,14 +36,14 @@ resources:
 jobs:
 - name: update-docker-image
   plan:
-  - get: angular-bootcamp-repo
+  - get: repo
   - put: docker-hub
     params: {build: ci}
     get_params: {rootfs: true}
 
 - name: java-unit-tests
   plan:
-  - get: angular-bootcamp-repo
+  - get: repo
     trigger: false
   - task: Run API Unit Tests
     timeout: 59m
@@ -55,7 +55,7 @@ jobs:
           repository: openjdk
           tag: 11.0.13-oracle
       inputs:
-        - name: angular-bootcamp-repo
+        - name: repo
       run:
         path: bash
         args:
@@ -64,7 +64,7 @@ jobs:
 
 - name: java-build-and-deploy
   plan:
-    - get: angular-bootcamp-repo
+    - get: repo
       trigger: true
     - task: Build API Jar file
       timeout: 59m
@@ -76,14 +76,14 @@ jobs:
             repository: openjdk
             tag: 11.0.13-oracle
         inputs:
-          - name: angular-bootcamp-repo
+          - name: repo
         outputs:
           - name: output
         run:
           path: bash
           args:
             - "-c"
-            - "cd ./gradlew build -x test && cp ./build/libs/angular-bootcamp-0.0.1-SNAPSHOT.jar ../output && cp manifest-tas.yml ../output"
+            - "cd repo && pwd && ls -l && ./gradlew build -x test && cp ./build/libs/pal-tracker.jar ../output && cp ./manifest-tas.yml ../output"
     - task: Build API Jar file
       timeout: 59m
       config:
@@ -103,7 +103,7 @@ jobs:
 - name: tas-deploy
   serial: true
   plan:
-  - get: angular-bootcamp-repo
+  - get: repo
     trigger: false
     passed: [java-unit-tests]
   - task: Build
@@ -115,7 +115,7 @@ jobs:
         source:
           repository: djoo/angular-spring
       inputs:
-        - name: angular-bootcamp-repo
+        - name: repo
       outputs:
         - name: output
       run:
@@ -126,9 +126,9 @@ jobs:
   - aggregate:
     - put: pws-labs-playground
       params:
-        manifest: ./angular-bootcamp-repo/manifest-ci-api.yml
+        manifest: ./repo/manifest-ci-api.yml
         current_app_name: angular-bootcamp-api
     - put: pws-labs-playground
       params:
-        manifest: ./angular-bootcamp-repo/manifest-ci-ui.yml
+        manifest: ./repo/manifest-ci-ui.yml
         current_app_name: angular-bootcamp-ui

@@ -1,7 +1,7 @@
 ---
 applications:
-  - name: pal-tracker
-    path: ../output/pal-tracker.jar
+  - name: pal-tracker-concourse
+    path: pal-tracker.jar
     random-route: true
 
 #    routes:
