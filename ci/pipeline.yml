@@ -98,7 +98,7 @@ jobs:
           path: bash
           args:
             - "-c"
-            - "cd ./output && cf login --sso-passcode ((tas_passcode)) -a https://api.run.pcfone.io -o pivot-ikanshyn -s dev && cf push -f manifest-ci-api.yml"
+            - "cd ./output && cf login --sso-passcode ((tas_passcode)) -a https://api.run.pcfone.io -o pivot-ikanshyn -s dev && cf push -f manifest-tas.yml"
 
 - name: tas-deploy
   serial: true
